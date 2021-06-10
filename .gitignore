@@ -1,0 +1,12 @@
+*
+*/*
+
+!.gitignore
+!README.md
+!package.json
+!tsconfig.json
+!yarn.lock
+!public
+!public/**
+!src
+!src/**
