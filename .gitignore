@@ -3,6 +3,7 @@
 
 !.gitignore
 !README.md
+!main.js
 !package.json
 !tsconfig.json
 !yarn.lock
