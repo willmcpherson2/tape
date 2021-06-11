@@ -1,3 +1,19 @@
+import Editor from "./Editor";
+import Tape from "./Tape";
+import "./App.css";
+import { useState } from "react";
+
 export default function App() {
-  return <h1>tape</h1>;
+  const [tokens, setTokens] = useState(new Array<string>());
+
+  function handleChange(newTokens: string[]) {
+    setTokens(newTokens);
+  }
+
+  return (
+    <div className="App">
+      <Editor onChange={handleChange} />
+      <Tape tokens={tokens} />
+    </div>
+  );
 }
