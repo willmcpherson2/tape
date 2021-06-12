@@ -1,30 +1,46 @@
 import { useEffect, useReducer } from "react";
 
 class State {
-  tape = Array<number>(10).fill(0);
+  tape = Array<number>(40).fill(0);
   tokenIndex = 0;
   tapeIndex = 0;
+  inputIndex = 0;
+  outputIndex = 0;
+  output = Array<number>(40).fill(0);
 }
 
 function clone(state: State): State {
-  return { ...state, tape: [...state.tape] };
+  return {
+    tape: [...state.tape],
+    tokenIndex: state.tokenIndex,
+    tapeIndex: state.tapeIndex,
+    inputIndex: state.inputIndex,
+    outputIndex: state.outputIndex,
+    output: [...state.output],
+  };
 }
 
-export default function Tape(props: { tokens: string[] }) {
+export default function Tape(props: { tokens: string[], input: number[] }) {
   const [state, setState] = useReducer(step, new State());
 
   useEffect(() => {
     setState(null);
 
     const id = setInterval(() => {
-      setState(props.tokens);
+      setState([props.tokens, props.input]);
     });
 
     return () => clearInterval(id);
-  }, [props.tokens]);
+  }, [props.tokens, props.input]);
 
   const cells = state.tape.map((value, i) => <Cell value={value} key={i} />);
-  return <div className="Tape">{cells}</div>;
+  const output = state.output.map((value, i) => <Cell value={value} key={i} />);
+  return (
+    <div>
+      <div className="Tape">{cells}</div>
+      <div className="Tape">{output}</div>
+    </div>
+  );
 }
 
 function Cell(props: { value: number }) {
@@ -35,12 +51,14 @@ function Cell(props: { value: number }) {
   );
 }
 
-function step(state: State, tokens: string[] | null): State {
-  if (tokens === null) {
+function step(state: State, props: [string[], number[]] | null): State {
+  if (props === null) {
     return new State();
   }
 
-  let { tape, tokenIndex, tapeIndex } = clone(state);
+  const [tokens, input] = props;
+
+  let { tape, tokenIndex, tapeIndex, inputIndex, outputIndex, output } = clone(state);
 
   if (tokens[tokenIndex]) {
     switch (tokens[tokenIndex]) {
@@ -64,19 +82,61 @@ function step(state: State, tokens: string[] | null): State {
         if (tape[tapeIndex]) {
           tokenIndex += 1;
         } else {
-          while (tokens[tokenIndex] !== "]") {
-            tokenIndex += 1;
+          let stack = 0;
+          while (true) {
+            switch (tokens[tokenIndex]) {
+              case "[":
+                stack += 1;
+                tokenIndex += 1;
+                break;
+              case "]":
+                stack -= 1;
+                tokenIndex += 1;
+                break;
+              default:
+                tokenIndex += 1;
+            }
+            if (stack === 0) {
+              break;
+            }
           }
-          tokenIndex += 1;
         }
         break;
       case "]":
-        while (tokens[tokenIndex] !== "[") {
-          tokenIndex -= 1;
+        let stack = 0;
+        while (true) {
+          switch (tokens[tokenIndex]) {
+            case "[":
+              stack += 1;
+              tokenIndex -= 1;
+              break;
+            case "]":
+              stack -= 1;
+              tokenIndex -= 1;
+              break;
+            default:
+              tokenIndex -= 1;
+          }
+          if (stack === 0) {
+            tokenIndex += 1;
+            break;
+          }
         }
         break;
+      case ".":
+        const value = tape[tapeIndex];
+        if (value !== undefined) {
+          output[outputIndex] = value;
+        }
+        outputIndex += 1;
+        tokenIndex += 1;
+        break;
+      case ",":
+        tape[tapeIndex] = input[inputIndex];
+        inputIndex += 1;
+        tokenIndex += 1;
     }
-  };
+  }
 
-  return { tape, tokenIndex, tapeIndex };
+  return { tape, tokenIndex, tapeIndex, inputIndex, outputIndex, output };
 }

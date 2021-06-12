@@ -5,15 +5,20 @@ import { useState } from "react";
 
 export default function App() {
   const [tokens, setTokens] = useState(new Array<string>());
+  const [input, setInput] = useState(new Array<number>());
 
-  function handleChange(newTokens: string[]) {
+  function handleTokens(newTokens: string[]) {
     setTokens(newTokens);
+  }
+
+  function handleInput(newInput: number[]) {
+    setInput(newInput);
   }
 
   return (
     <div className="App">
-      <Editor onChange={handleChange} />
-      <Tape tokens={tokens} />
+      <Editor onTokens={handleTokens} onInput={handleInput} />
+      <Tape tokens={tokens} input={input} />
     </div>
   );
 }
