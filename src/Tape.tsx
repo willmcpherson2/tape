@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useReducer } from "react";
 
 class State {
   tape = Array<number>(10).fill(0);
@@ -11,17 +11,17 @@ function clone(state: State): State {
 }
 
 export default function Tape(props: { tokens: string[] }) {
-  const [state, setState] = useState(new State());
+  const [state, setState] = useReducer(step, new State());
 
   useEffect(() => {
-    setState(new State());
+    setState(null);
 
     const id = setInterval(() => {
-      setState(state => step(props.tokens, state));
-    }, 1000);
+      setState(props.tokens);
+    });
 
     return () => clearInterval(id);
-  }, [props]);
+  }, [props.tokens]);
 
   const cells = state.tape.map((value, i) => <Cell value={value} key={i} />);
   return <div className="Tape">{cells}</div>;
@@ -35,7 +35,11 @@ function Cell(props: { value: number }) {
   );
 }
 
-function step(tokens: string[], state: State): State {
+function step(state: State, tokens: string[] | null): State {
+  if (tokens === null) {
+    return new State();
+  }
+
   let { tape, tokenIndex, tapeIndex } = clone(state);
 
   if (tokens[tokenIndex]) {
